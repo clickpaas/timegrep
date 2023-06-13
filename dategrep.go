@@ -2,229 +2,230 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
-	"io"
-	"io/fs"
 	"os"
-	"regexp"
-	"sync/atomic"
+	"strings"
 	"time"
 )
 
-type LogEntry struct {
-	Timestamp time.Time
-	Message   []byte
-}
-
-const pattern = "^\\d{4}-\\d{1,2}-\\d{1,2} \\d{1,2}:\\d{1,2}:\\d{1,2}.\\d{1,3}"
-const min_log_size = 20
+// eg: go run dategrep.go -start="2023-03-28 23:59:55" -end="2023-03-28 23:59:57" -file logfile.log
+const layout = "2006-01-02 15:04:05"
 
 func main() {
-	// Open the log file for reading
-	//file, err := os.Open("logfile.log")
-	file, err := os.Open("/Users/tingfeng/work/java/python-monitor/log/app-20230220.1.log")
-	// 2023-03-28 23:59:55
-	//var startTime time.Time = time.Date(2023, 3, 28, 23, 59, 57, 0, time.Local)
-	var startTimeString = "2023-02-20 18:14:03";
-	var endTimeString = "2023-02-20 18:14:04";
-	//var startTimeString = "2023-03-28 23:59:50"
-	//var endTimeString = "2023-08-28 23:59:57"
-	var startTime, _ = time.ParseInLocation("2006-01-02 15:04:05", startTimeString, time.Local)
-	var endTime, _ = time.ParseInLocation("2006-01-02 15:04:05", endTimeString, time.Local)
-	endTime = endTime.Add(time.Millisecond * 999)
-	re := regexp.MustCompile(pattern)
-	bufFile := bufio.NewReader(file)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
+	var (
+		startTime string
+		endTime   string
+		//pattern   string
+		path string
+	)
 
-	// Get the file size
-	fileInfo, err := file.Stat()
-	if err != nil {
-		panic(err)
-	}
+	flag.StringVar(&startTime, "start", "", "start time")
+	flag.StringVar(&endTime, "end", "", "end time")
+	//flag.StringVar(&pattern, "pattern", "", "pattern to match")
+	flag.StringVar(&path, "path", "", "path to search")
+	flag.Parse()
 
-	// TODO 优化 起始时间定位行 结束时间定位行 ,其中找过的可以缓存
-
-	startLogOffset := locateOffsetByTime(fileInfo, bufFile, file, re, startTime, false)
-	println("=========")
-	endLogOffset := locateOffsetByTime(fileInfo, bufFile, file, re, endTime, true)
-	fmt.Printf("startLogOffset:%v,endLogOffset:%v\n", startLogOffset,endLogOffset)
-	if startLogOffset >= endLogOffset {
+	if startTime == "" || endTime == "" || /*pattern == "" ||*/ path == "" {
+		fmt.Println("Usage: timegrep -start START_TIME -end END_TIME -pattern PATTERN -path FILE")
+		//os.Exit(1)
 		return
 	}
 
-	_, err = file.Seek(startLogOffset, 0)
-	if err != nil && err != io.EOF {
-		panic(err)
+	if IsDir(path) {
+		files, err := GetDirAllFilePaths(path)
+		if err != nil {
+			return
+		}
+		for i := range files {
+			file := files[i]
+			println("file:", file)
+			searchLogfile(startTime, endTime, file)
+		}
+		return
+	}
+	if strings.HasSuffix(path, ".log") {
+		searchLogfile(startTime, endTime, path)
+	}
+}
+
+func searchLogfile(startTime string, endTime string, file string) {
+	start, err := time.Parse(layout, startTime)
+	if err != nil {
+		fmt.Println("Invalid start time format")
+		//os.Exit(1)
+		return
 	}
 
-	size := (endLogOffset - startLogOffset)
-	var sum int64 = 0
+	end, err := time.Parse(layout, endTime)
+	if err != nil {
+		fmt.Println("Invalid end time format")
+		//os.Exit(1)
+		return
+	}
 
-	//for {
-	//	var line []byte
-	//	for {
-	//		nextByte := make([]byte, 1)
-	//		_, err := file.Read(nextByte)
-	//		if err != nil && err != io.EOF {
-	//			panic(err)
-	//		}
-	//		if nextByte[0] == '\n' || err == io.EOF {
-	//			line = append(line, nextByte[0])
-	//			sum = atomic.AddInt64(&sum, int64(len(line)))
-	//			fmt.Printf("\n----result sum= %v, line %s: ", sum,string(line))
-	//			break
-	//		}
-	//		line = append(line, nextByte[0])
-	//	}
-	//
-	//	if sum > size {
-	//		break
-	//	}
+	//patternRegexp, err := regexp.Compile(pattern)
+	//if err != nil {
+	//	fmt.Println("Invalid pattern format")
+	//	os.Exit(1)
 	//}
 
-	bufFile.Reset(file)
-	for {
-		buf, err := bufFile.ReadBytes('\n')
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
+	fileHandle, err := os.Open(file)
 
-		fmt.Printf("%s", string(buf))
-		atomic.AddInt64(&sum, int64(len(buf)))
-		if sum >= size {
-			break
-		}
-		//cur_offset,_:=file.Seek(0,os.SEEK_CUR)
-		//if cur_offset>endLogOffset{
-		//	break
-		//}
+	fs, err := fileHandle.Stat()
+	if fs.ModTime().Before(start) {
+		//os.Exit(1)
+		return
 	}
 
-}
-
-func locateOffsetByTime(fileInfo fs.FileInfo, bufFile *bufio.Reader, file *os.File, re *regexp.Regexp, searchTime time.Time, isEndTimeSearch bool) int64 {
-	// Perform binary search until log entry is found or search range is exhausted
-
-	fileSize := fileInfo.Size()
-	// 文件修改时间超出范围
-	if fileInfo.ModTime().Before(searchTime) {
-		return fileSize
-	}
-
-	lastTimeString, err := ReverseReadLastTime(file)
 	if err != nil {
-		return -1
+		fmt.Println("Error opening file")
+		//os.Exit(1)
+		return
 	}
-	lastTime, err := time.ParseInLocation("2006-01-02 15:04:05.000", *lastTimeString, time.Local)
-	// 判断最后带时间的一行是否超出时间范围,如果是结束
-	if lastTime.Before(searchTime) {
-		return fileSize
+	defer fileHandle.Close()
+
+	stat, err := fileHandle.Stat()
+	if err != nil {
+		fmt.Println("Error getting file size")
+		//os.Exit(1)
+		return
 	}
-	// Define the search range
-	firstOffset := int64(0)
-	lastOffset := fileSize - 1
-	var logEntry LogEntry
-	midpointOffset := lastOffset
-	for firstOffset <= lastOffset - min_log_size {
-		// Calculate midpoint offset
-		midpointOffset = (firstOffset + lastOffset) / 2
-		bufFile.Reset(file)
-		// Seek to midpoint offset
-		_, err := file.Seek(midpointOffset, 0)
-		if err != nil {
-			panic(err)
-		}
-		// Read the next full line, including the newline character
-		line, timeStr := readNewLine(bufFile, re)
-		// Parse the log entry timestamp
 
-		logEntry.Timestamp, err = time.ParseInLocation("2006-01-02 15:04:05.000", timeStr, time.Local)
-		if err != nil {
-			panic(err)
-		}
-		logEntry.Message = line
-
-		fmt.Printf("peek midpointOffset=%v, entry=%v\n", midpointOffset, string(logEntry.Message))
-		if searchTime.Before(logEntry.Timestamp) {
-			lastOffset = midpointOffset - 1
-		} else if searchTime.After(logEntry.Timestamp) {
-			firstOffset = midpointOffset + 1
-		} else {
-			fmt.Printf("Found log entry: %v\n", logEntry)
-			return midpointOffset
-		}
+	fileSize := stat.Size()
+	lower := int64(0)
+	upper := fileSize
+	startOffset := int64(0)
+	endOffset := int64(0)
+	if endOffset > 0 {
+		// skip warn
 	}
-	//line, timeStr := readNewLine(bufFile, re)
-	//fmt.Printf("at last, Found log entry: %s,%s", timeStr, line)
-	if isEndTimeSearch {
-		atomic.AddInt64(&midpointOffset, int64(len(logEntry.Message)))
-	}
-	return midpointOffset
-}
 
-func readNewLine(bufFile *bufio.Reader, re *regexp.Regexp) ([]byte, string) {
-	var line []byte
-	var timeStr string
-	for {
-		buf, err := bufFile.ReadBytes('\n')
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
+	for lower <= upper {
+		mid := (lower + upper) / 2
+		fileHandle.Seek(mid, 0)
+		scanner := bufio.NewScanner(fileHandle)
+		//for tryTimes:=0;tryTimes<3;tryTimes++{
+		//
+		//}
 
-		if re.Match(buf) {
-			line = buf
-			timeStr = string(re.Find(line))
-			//fmt.Printf("timeStr=#%s#buf = #%s#\n", timeStr, string(buf))
+		canBreak, timestamp, err := scanOneLineStartWithTime(scanner)
+		if canBreak {
 			break
 		}
+		if err != nil {
+			continue
+		}
+		if timestamp.After(end) {
+			upper = mid - 1
+		} else {
+			endOffset = mid
+			lower = mid + 1
+		}
 	}
-	return line, timeStr
+
+	lower = startOffset
+	upper = fileSize
+
+	for lower <= upper {
+		mid := (lower + upper) / 2
+		fileHandle.Seek(mid, 0)
+		scanner := bufio.NewScanner(fileHandle)
+		canBreak, timestamp, err := scanOneLineStartWithTime(scanner)
+		if canBreak {
+			break
+		}
+		if err != nil {
+			continue
+		}
+		if timestamp.Before(start) {
+			lower = mid + 1
+		} else {
+			startOffset = mid
+			upper = mid - 1
+		}
+	}
+
+	fileHandle.Seek(startOffset, 0)
+	scanner := bufio.NewScanner(fileHandle)
+	for scanner.Scan() {
+		line := scanner.Text()
+		timestamp, err := time.Parse(layout, line[:19])
+		if err != nil {
+			continue
+		}
+		if timestamp.After(end) {
+			break
+		}
+		//if patternRegexp.MatchString(line) {
+		//	fmt.Println(line)
+		//}
+		fmt.Println(line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading file")
+		//os.Exit(1)
+		return
+	}
 }
 
-func ReverseReadLastTime(file *os.File) (*string, error) {
-	re := regexp.MustCompile(pattern)
-	lineNum := 300
-	//打开文件
-	//defer file.Close()
-	//获取文件大小
-	fs, err := file.Stat()
+func scanOneLineStartWithTime(scanner *bufio.Scanner) (bool, time.Time, error) {
+	canBreak := false
+	if !scanner.Scan() {
+		canBreak = true
+	}
+	line := scanner.Text()
+	timeString := ""
+	if len(line) >= 19 {
+		timeString = line[:19]
+	}
+	timestamp, err := time.Parse(layout, timeString)
+	if err != nil {
+		if !scanner.Scan() {
+			canBreak = true
+		}
+		line := scanner.Text()
+		timeString2 := ""
+		if len(line) >= 19 {
+			timeString2 = line[:19]
+		}
+		timestamp, err = time.Parse(layout, timeString2)
+	}
+	return canBreak, timestamp, err
+}
+
+func IsDir(path string) bool {
+	s, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return s.IsDir()
+}
+
+func GetDirAllFilePaths(dirname string) ([]string, error) {
+	// Remove the trailing path separator if dirname has.
+	dirname = strings.TrimSuffix(dirname, string(os.PathSeparator))
+
+	infos, err := os.ReadDir(dirname)
 	if err != nil {
 		return nil, err
 	}
-	fileSize := fs.Size()
 
-	var offset int64 = -1   //偏移量，初始化为-1，若为0则会读到EOF
-	char := make([]byte, 1) //用于读取单个字节
-	lineStr := ""           //存放一行的数据
-	buff := make([]string, 0, 100)
-	for (-offset) <= fileSize {
-		//通过Seek函数从末尾移动游标然后每次读取一个字节
-		file.Seek(offset, io.SeekEnd)
-		_, err := file.Read(char)
-		if err != nil {
-			return nil, err
-		}
-		if char[0] == '\n' {
-			offset--  //windows跳过'\r'
-			lineNum-- //到此读取完一行
-			findString := re.FindString(lineStr)
-			if findString != "" {
-				return &findString, nil
+	paths := make([]string, 0, len(infos))
+	for _, info := range infos {
+		path := dirname + string(os.PathSeparator) + info.Name()
+		if info.IsDir() {
+			tmp, err := GetDirAllFilePaths(path)
+			if err != nil {
+				return nil, err
 			}
-			buff = append(buff, lineStr)
-			lineStr = ""
-			if lineNum == 0 {
-				return &findString, nil
-			}
-		} else {
-			lineStr = string(char) + lineStr
+			paths = append(paths, tmp...)
+			continue
 		}
-		offset--
+		if strings.HasSuffix(info.Name(), ".log") {
+			paths = append(paths, path)
+		}
 	}
-	//buff = append(buff, lineStr)
-	//return buff, nil
-	return nil, nil
+	return paths, nil
 }
