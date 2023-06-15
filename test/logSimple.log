@@ -9,7 +9,5 @@
 2023-03-28 23:59:57.057 [AppName: ][TID: 1.25117452587.16768650504710001] [INFO ] [mq-clearExpireMQInfoRecord18]  - clear expire mqInfo record data successed! topic:metadata_change_topic%xbl, expireTime:-7, result:true
 2023-03-28 23:59:57.057 [AppName: ][TID: 1.25117452587.16768650504710001] [INFO ] [mq-clearExpireMQInfoRecord19]  - clear expire mqInfo record data successed! topic:metadata_change_topic%xbl, expireTime:-7, result:true
 2023-03-28 23:59:57.057 [AppName: ][TID: 1.25117452587.16768650504710001] [INFO ] [mq-clearExpireMQInfoRecord111]  - clear expire mqInfo record data successed! topic:metadata_change_topic%xbl, expireTime:-7, result:true
+2023-03-28 23:59:58.057 [TID: ] [] [INFO ] [Catalina-utility-2]  - Context refreshed
 2023-04-14 12:00:00.000 [AppName: ][TID: 1.25117452587.16768650504710001] [INFO ] [mq-clearExpireMQInfoRecord112]  - clear expire mqInfo record data successed! topic:metadata_change_topic%xbl, expireTime:-7, result:true
-100200
-200
-3

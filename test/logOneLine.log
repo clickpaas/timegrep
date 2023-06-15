@@ -1,0 +1,1 @@
+2023-03-28 23:59:20.057 [AppName: ][TID: 1.25117452587.16768650504710001] [INFO ] [http-nio2-8380-exec-2] com.alibaba.csp.sentinel.logging.slf4j.RecordLogLogger.info(RecordLogLogger.java:33) - Add child <com.successchannel.lego.coordination.client.CalendarClient> to node <sentinel_default_context>
