@@ -1,6 +1,8 @@
 # performance grep VS timegrep
 timegrep is 80+ times faster than grep with last several minutes scope
-
+- skip grep old file that modified-date older than search time
+- find log-time in log with binary search 
+- search result include exception that following log-time
 # usage:
 ```
  ./timegrep.amd64 -start="2023-03-28 23:59:55" -end="2023-03-28 23:59:57" -path ./

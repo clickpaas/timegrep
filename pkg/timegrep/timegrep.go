@@ -17,14 +17,14 @@ const timeStringLength = len(layout)
 const maxStackSize = 1024 + 1
 
 func SearchLogfile(startTime string, endTime string, file string) {
-	start, err := time.ParseInLocation(layout, startTime,time.Local)
+	start, err := time.ParseInLocation(layout, startTime, time.Local)
 	if err != nil {
 		fmt.Println("Invalid start time format")
 		//os.Exit(1)
 		return
 	}
 
-	end, err := time.ParseInLocation(layout, endTime,time.Local)
+	end, err := time.ParseInLocation(layout, endTime, time.Local)
 	if err != nil {
 		fmt.Println("Invalid end time format")
 		//os.Exit(1)
@@ -52,14 +52,13 @@ func SearchLogfile(startTime string, endTime string, file string) {
 
 	//linuxFileAttr := finfo.Sys().(*syscall.Stat_t)
 	//mtime := time.Unix(linuxFileAttr.Mtimespec.Sec, 0)
-	//fmt.Println("最后修改时间", finfo.ModTime())
-	//fmt.Println("最后修改时间", start)
+	//fmt.Println("last modified time1", finfo.ModTime())
+	//fmt.Println("last modified time2", start)
 	//fs.ModTime().In(local)
 	if fs.ModTime().Before(start) {
 		//os.Exit(1)
 		return
 	}
-
 
 	if err != nil {
 		fmt.Println("Error opening file")
@@ -103,7 +102,7 @@ func SearchLogfile(startTime string, endTime string, file string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) >= timeStringLength {
-			timestamp, err := time.ParseInLocation(layout, line[:timeStringLength],time.Local)
+			timestamp, err := time.ParseInLocation(layout, line[:timeStringLength], time.Local)
 			if err != nil {
 				// print exception line
 				if hasFirstTimeString {
@@ -145,7 +144,7 @@ func scanOneLineStartWithTime(scanner *bufio.Scanner) (bool, time.Time, int64, e
 		scanSize += int64(lineLength) + 1
 		if lineLength >= timeStringLength {
 			timeString := line[:timeStringLength]
-			timestamp, err := time.ParseInLocation(layout, timeString,time.Local)
+			timestamp, err := time.ParseInLocation(layout, timeString, time.Local)
 			if err != nil {
 				continue
 			}
@@ -215,7 +214,7 @@ func FindLastLineWithTimeString(f *os.File) (int64, int64) {
 		//scanSize += int64(lineLength) + 1
 		if lineLength >= timeStringLength {
 			timeString := line[:timeStringLength]
-			_, err := time.ParseInLocation(layout, timeString,time.Local)
+			_, err := time.ParseInLocation(layout, timeString, time.Local)
 			if err != nil {
 				continue
 			}
