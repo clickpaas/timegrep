@@ -6,14 +6,14 @@ timegrep is 80+ times faster than grep with last several minutes scope
 - tid include time , and timegrep will search time between (-15seconds-->+300seconds) 
 # usage:
 ```
- ./timegrep.amd64 -start="2023-03-28 23:59:55" -end="2023-03-28 23:59:57" -path ./
+ ./timegrep.amd64 -start "2023-03-28 23:59:55" -end "2023-03-28 23:59:57" -path ./
  ```
 
 ```
- ./timegrep.amd64 -start="2023-03-28 23:59:55" -end="2023-03-28 23:59:57" -path ./test/a.log
+ ./timegrep.amd64 -start "2023-03-28 23:59:55" -end "2023-03-28 23:59:57" -path ./test/a.log
 ```
 ```
- ./timegrep.amd64 -tid="1.25117452587.16800191604710001" -path ./test/logSimple.log
+ ./timegrep.amd64 -tid 1.25117452587.16800191604710001 -path ./test/logSimple.log
  ```
 # build
 - linux `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o timegrep.amd64`
