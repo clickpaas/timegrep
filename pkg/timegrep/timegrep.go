@@ -2,35 +2,40 @@ package timegrep
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	backscanner "github.com/clickpaas/dategrep/pkg/backscanner"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 // eg: go run dategrep.go -start="2023-03-28 23:59:55" -end="2023-03-28 23:59:57" -file logfile.log
-const layout = "2006-01-02 15:04:05"
-const timeStringLength = len(layout)
+const Layout = "2006-01-02 15:04:05"
+const TimeStringLength = len(Layout)
 
 // default java stack size and one line exception
 const maxStackSize = 1024 + 1
 
 func SearchLogfile(startTime string, endTime string, file string) {
-	start, err := time.ParseInLocation(layout, startTime, time.Local)
+	start, err := time.ParseInLocation(Layout, startTime, time.Local)
 	if err != nil {
 		fmt.Println("Invalid start time format")
 		//os.Exit(1)
 		return
 	}
 
-	end, err := time.ParseInLocation(layout, endTime, time.Local)
+	end, err := time.ParseInLocation(Layout, endTime, time.Local)
 	if err != nil {
 		fmt.Println("Invalid end time format")
 		//os.Exit(1)
 		return
 	}
+	SearchLogfile2(start, end, file)
+}
 
+func SearchLogfile2(start time.Time, end time.Time, file string) {
 	//patternRegexp, err := regexp.Compile(pattern)
 	//if err != nil {
 	//	fmt.Println("Invalid pattern format")
@@ -101,8 +106,8 @@ func SearchLogfile(startTime string, endTime string, file string) {
 	hasFirstTimeString := false
 	for scanner.Scan() {
 		line := scanner.Text()
-		if len(line) >= timeStringLength {
-			timestamp, err := time.ParseInLocation(layout, line[:timeStringLength], time.Local)
+		if len(line) >= TimeStringLength {
+			timestamp, err := time.ParseInLocation(Layout, line[:TimeStringLength], time.Local)
 			if err != nil {
 				// print exception line
 				if hasFirstTimeString {
@@ -142,9 +147,9 @@ func scanOneLineStartWithTime(scanner *bufio.Scanner) (bool, time.Time, int64, e
 		lineLength := len(line)
 		// +1 : scan one line include end character=\n
 		scanSize += int64(lineLength) + 1
-		if lineLength >= timeStringLength {
-			timeString := line[:timeStringLength]
-			timestamp, err := time.ParseInLocation(layout, timeString, time.Local)
+		if lineLength >= TimeStringLength {
+			timeString := line[:TimeStringLength]
+			timestamp, err := time.ParseInLocation(Layout, timeString, time.Local)
 			if err != nil {
 				continue
 			}
@@ -212,9 +217,9 @@ func FindLastLineWithTimeString(f *os.File) (int64, int64) {
 		//}
 		lineLength := len(line)
 		//scanSize += int64(lineLength) + 1
-		if lineLength >= timeStringLength {
-			timeString := line[:timeStringLength]
-			_, err := time.ParseInLocation(layout, timeString, time.Local)
+		if lineLength >= TimeStringLength {
+			timeString := line[:TimeStringLength]
+			_, err := time.ParseInLocation(Layout, timeString, time.Local)
 			if err != nil {
 				continue
 			}
@@ -222,4 +227,17 @@ func FindLastLineWithTimeString(f *os.File) (int64, int64) {
 		}
 	}
 	return 0, pos
+}
+
+func ParseTid(tid string) (time.Time, error) {
+	arr := strings.Split(tid, ".")
+	if len(arr) == 3 {
+		timeSeqPart := arr[2]
+		atoi, err := strconv.Atoi(timeSeqPart[0:10])
+		if err != nil {
+			return time.Now(), err
+		}
+		return time.Unix(int64(atoi), 0).In(time.Local), nil
+	}
+	return time.Now(), errors.New("invalid tid ,it's not contain two '.' ")
 }

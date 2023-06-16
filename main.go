@@ -5,27 +5,61 @@ import (
 	"fmt"
 	"github.com/clickpaas/dategrep/pkg/timegrep"
 	"strings"
+	"time"
 )
 
 func main() {
 	var (
-		startTime string
-		endTime   string
+		start string
+		end   string
 		//pattern   string
 		path string
+		tid  string
 	)
 
-	flag.StringVar(&startTime, "start", "", "start time")
-	flag.StringVar(&endTime, "end", "", "end time")
+	flag.StringVar(&start, "startTime", "", "start time")
+	flag.StringVar(&end, "endTime", "", "end time")
 	//flag.StringVar(&pattern, "pattern", "", "pattern to match")
 	flag.StringVar(&path, "path", "", "path to search")
+	flag.StringVar(&tid, "tid", "", "tid to search")
 	flag.Parse()
 
-	if startTime == "" || endTime == "" || /*pattern == "" ||*/ path == "" {
-		fmt.Println("Usage: timegrep -start START_TIME -end END_TIME -pattern PATTERN -path FILE")
+	if start == "" && end == "" && /*pattern == "" ||*/ path == "" && tid == "" {
+		fmt.Println("Usage1: timegrep -start START_TIME -end END_TIME -path FILE")
+		fmt.Println("Usage2: timegrep -tid TID -path FILE")
 		//os.Exit(1)
 		return
 	}
+
+	if tid != "" && path != "" {
+		tidTime, err := timegrep.ParseTid(tid)
+		if err != nil {
+			fmt.Println("fail to parse tid,maybe it's not contains timestamp,tid=%s,err=%v", tid, err)
+			return
+		}
+		startTime := tidTime.Add(-15 * time.Second)
+		endTime := tidTime.Add(300 * time.Second)
+		searchPathOrDirectory(path, startTime, endTime)
+	} else if start != "" && end != "" && path != "" {
+		startTime, err := time.ParseInLocation(timegrep.Layout, start, time.Local)
+		if err != nil {
+			fmt.Println("Invalid startTime time format")
+			//os.Exit(1)
+			return
+		}
+
+		endTime, err := time.ParseInLocation(timegrep.Layout, end, time.Local)
+		if err != nil {
+			fmt.Println("Invalid endTime time format")
+			//os.Exit(1)
+			return
+		}
+		searchPathOrDirectory(path, startTime, endTime)
+	}
+
+}
+
+func searchPathOrDirectory(path string, startTime time.Time, endTime time.Time) {
 	if timegrep.IsDir(path) {
 		files, err := timegrep.GetDirAllFilePaths(path)
 		if err != nil {
@@ -34,11 +68,11 @@ func main() {
 		for i := range files {
 			file := files[i]
 			println("grepPath:", file)
-			timegrep.SearchLogfile(startTime, endTime, file)
+			timegrep.SearchLogfile2(startTime, endTime, file)
 		}
 		return
 	}
 	if strings.HasSuffix(path, ".log") {
-		timegrep.SearchLogfile(startTime, endTime, path)
+		timegrep.SearchLogfile2(startTime, endTime, path)
 	}
 }

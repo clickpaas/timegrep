@@ -50,6 +50,19 @@ func Test_bigfile(t *testing.T) {
 	timegrep.SearchLogfile("2023-06-15 14:30:31", "2023-06-15 14:31:31", "/Users/tingfeng/Downloads/app.log")
 }
 
+func Test_byteConvert(t *testing.T) {
+	str := "abc123你好!"
+	println(len(str))
+	b := []byte(str)
+	println(len(b))
+}
+
+func Test_tid2timestamp(t *testing.T) {
+	tid, err := timegrep.ParseTid("1.25117452587.16800191604710001")
+	println(err)
+	println(tid.Format(timegrep.Layout))
+}
+
 func Test_filestat(t *testing.T) {
 	//for _, arg := range os.Args[1:] {
 	fileinfo, err := os.Stat("logNoTime.log")
