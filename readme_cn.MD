@@ -1,36 +1,36 @@
-# performance grep VS timegrep
-timegrep is 80+ times faster than grep with last several minutes scope, 
-## timegrep run as following steps
-- skip grep old file that modified-date older than search time
-- find log-time in log with binary search 
-- search result include exception that following log-time
-- tid include time , and timegrep will search time between (-15seconds-->+300seconds) 
-# usage:
+# 性能对比 grep VS timegrep
+文件最后几分钟发生的日志检索速度, timegrep比grep快80倍以上
+## timegrep 按如下步骤执行
+- 搜索时间范围在文件最后修改时间之后,则直接跳过,这样可以跳过大量的历史文件
+- 通过二分法定位日志时间行,大文件速度也非常快 
+- 日志时间行后的异常也输出
+- 如果使用tid搜索则把tid中的日志时间提取出来放大一些搜索范围,再找出tid的行,放大日志时间范围 (-15seconds-->+300seconds) 
+# 使用方法:
 ```
 Usage1: timegrep -s startTime -e endTime -p pathOrFile
 Usage2: timegrep -t tid -p pathOrFile
 
 ```
-# examples:
+# 示例:
 ```
  ./timegrep.amd64 -s "2023-03-28 23:59:55" -e "2023-03-28 23:59:57" -p ./
  ./timegrep.amd64 -s "2023-03-28 23:59:55" -e "2023-03-28 23:59:57" -p ./test/a.log
  ./timegrep.amd64 -t 1.25117452587.16800191604710001 -p ./test/logSimple.log
 ```
-![search with time range](test/searchWithTimeRange.png)
+![指定时间范围搜索日志](test/searchWithTimeRange.png)
 
-![search with exception](test/searchWithException.png)
+![搜索结果包含异常信息](test/searchWithException.png)
 
-# build
+# 编译
 - linux `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o timegrep.amd64`
 - arm64v8 `GOOS=linux GOARCH=arm64 go build -o timegrep.arm64`
 - macos `go build`
-# TODO:
-0. support several log format
-1. read first line to select a format layout
-2. replace scanner.Text()  with scanner.Bytes()
+# 待办:
+0. 支持多种日志格式
+1. 抽查第一行来确定日志格式,后续同一文件使用同种日志格式
+2. 代码中使用了字符串,可替换成bytes加速 ,替换 scanner.Text()  为 scanner.Bytes()
 
-# (performance PK)  grep VS timegrep 
+#  (性能对比) grep VS timegrep 
 ![test case](test/grepVStimegrep.png)
 
 ```

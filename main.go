@@ -17,16 +17,16 @@ func main() {
 		tid  string
 	)
 
-	flag.StringVar(&start, "startTime", "", "start time")
-	flag.StringVar(&end, "endTime", "", "end time")
+	flag.StringVar(&start, "s", "", "start time")
+	flag.StringVar(&end, "e", "", "end time")
 	//flag.StringVar(&pattern, "pattern", "", "pattern to match")
-	flag.StringVar(&path, "path", "", "path to search")
-	flag.StringVar(&tid, "tid", "", "tid to search")
+	flag.StringVar(&path, "p", "", "path to search")
+	flag.StringVar(&tid, "t", "", "tid to search")
 	flag.Parse()
 
 	if start == "" && end == "" && /*pattern == "" ||*/ path == "" && tid == "" {
-		fmt.Println("Usage1: timegrep -start START_TIME -end END_TIME -path FILE")
-		fmt.Println("Usage2: timegrep -tid TID -path FILE")
+		fmt.Println("Usage1: timegrep -s startTime -e endTime -p pathOrFile")
+		fmt.Println("Usage2: timegrep -t tid -p pathOrFile")
 		//os.Exit(1)
 		return
 	}
