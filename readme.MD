@@ -1,3 +1,6 @@
+
+![中文版本](https://github.com/clickpaas/timegrep/blob/main/readme_cn.MD)
+
 # performance grep VS timegrep
 timegrep is 80+ times faster than grep with last several minutes scope, 
 ## timegrep run as following steps
