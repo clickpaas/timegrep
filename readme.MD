@@ -32,7 +32,7 @@ Usage2: timegrep -t tid -p pathOrFile
 0. support several log format
 1. read first line to select a format layout
 2. replace scanner.Text()  with scanner.Bytes()
-
+3. performance tuning1: when time is near last log-line, prefer search tail 10000 lines, or search relative line number between first logTime and end logTime 
 # (performance PK)  grep VS timegrep 
 ![test case](test/grepVStimegrep.png)
 
