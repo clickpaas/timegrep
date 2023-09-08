@@ -33,6 +33,7 @@ Usage2: timegrep -t tid -p pathOrFile
 1. read first line to select a format layout
 2. replace scanner.Text()  with scanner.Bytes()
 3. performance tuning1: when time is near last log-line, prefer search tail 10000 lines, or search relative line number between first logTime and end logTime 
+4. multi tid, eg: timegrep -t tid1,tid2,tid3 , if tid between 1 minutes, search them all toggether
 # (performance PK)  grep VS timegrep 
 ![test case](test/grepVStimegrep.png)
 
