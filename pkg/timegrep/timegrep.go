@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	backscanner "github.com/clickpaas/dategrep/pkg/backscanner"
+	backscanner "github.com/clickpaas/timegrep/pkg/backscanner"
 	"os"
 	"strconv"
 	"strings"
