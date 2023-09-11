@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/clickpaas/dategrep/pkg/timegrep"
+	"github.com/clickpaas/timegrep/pkg/timegrep"
 	"strings"
 	"time"
 )
@@ -27,6 +27,7 @@ func main() {
 	if start == "" && end == "" && /*pattern == "" ||*/ path == "" && tid == "" {
 		fmt.Println("Usage1: timegrep -s startTime -e endTime -p pathOrFile")
 		fmt.Println("Usage2: timegrep -t tid -p pathOrFile")
+		fmt.Println("Usage2: timegrep -t tid1,tid2,tid3 -p pathOrFile")
 		//os.Exit(1)
 		return
 	}
