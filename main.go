@@ -27,20 +27,27 @@ func main() {
 	if start == "" && end == "" && /*pattern == "" ||*/ path == "" && tid == "" {
 		fmt.Println("Usage1: timegrep -s startTime -e endTime -p pathOrFile")
 		fmt.Println("Usage2: timegrep -t tid -p pathOrFile")
-		fmt.Println("Usage2: timegrep -t tid1,tid2,tid3 -p pathOrFile")
+		fmt.Println("Usage3: timegrep -t tid1,tid2,tid3 -p pathOrFile")
 		//os.Exit(1)
 		return
 	}
 
 	if tid != "" && path != "" {
-		tidTime, err := timegrep.ParseTid(tid)
-		if err != nil {
-			fmt.Println("fail to parse tid,maybe it's not contains timestamp,tid=%s,err=%v", tid, err)
-			return
+		if strings.Contains(tid, ",") {
+			minTime, maxTime := timegrep.ParseTidArr(tid)
+			startTime := minTime.Add(-15 * time.Second)
+			endTime := maxTime.Add(300 * time.Second)
+			searchPathOrDirectory(path, startTime, endTime)
+		} else {
+			tidTime, err := timegrep.ParseTid(tid)
+			if err != nil {
+				fmt.Println("fail to parse tid,maybe it's not contains timestamp,tid=%s,err=%v", tid, err)
+				return
+			}
+			startTime := tidTime.Add(-15 * time.Second)
+			endTime := tidTime.Add(300 * time.Second)
+			searchPathOrDirectory(path, startTime, endTime)
 		}
-		startTime := tidTime.Add(-15 * time.Second)
-		endTime := tidTime.Add(300 * time.Second)
-		searchPathOrDirectory(path, startTime, endTime)
 	} else if start != "" && end != "" && path != "" {
 		startTime, err := time.ParseInLocation(timegrep.Layout, start, time.Local)
 		if err != nil {

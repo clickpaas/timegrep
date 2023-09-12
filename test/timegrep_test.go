@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	backscanner "github.com/clickpaas/dategrep/pkg/backscanner"
-	timegrep "github.com/clickpaas/dategrep/pkg/timegrep"
+	backscanner "github.com/clickpaas/timegrep/pkg/backscanner"
+	timegrep "github.com/clickpaas/timegrep/pkg/timegrep"
 	"log"
 	"os"
 	"syscall"
@@ -61,6 +61,12 @@ func Test_tid2timestamp(t *testing.T) {
 	tid, err := timegrep.ParseTid("1.25117452587.16800191604710001")
 	println(err)
 	println(tid.Format(timegrep.Layout))
+}
+
+func Test_tidArr2timestamp(t *testing.T) {
+	minTime, maxTime := timegrep.ParseTidArr("1.25117452587.16800191604710001,1.25117452587.16800191804710001")
+	println(minTime.Format(timegrep.Layout))
+	println(maxTime.Format(timegrep.Layout))
 }
 
 func Test_filestat(t *testing.T) {

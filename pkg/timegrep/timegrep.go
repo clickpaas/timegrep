@@ -6,6 +6,7 @@ import (
 	"fmt"
 	backscanner "github.com/clickpaas/timegrep/pkg/backscanner"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -240,4 +241,21 @@ func ParseTid(tid string) (time.Time, error) {
 		return time.Unix(int64(atoi), 0).In(time.Local), nil
 	}
 	return time.Now(), errors.New("invalid tid ,it's not contain two '.' ")
+}
+
+func ParseTidArr(tid string) (time.Time, time.Time) {
+	tidArr := strings.Split(tid, ",")
+	tidTimeArr := make([]time.Time, len(tidArr))
+	for i := range tidArr {
+		tidTime, err := ParseTid(tidArr[i])
+		if err != nil {
+			fmt.Println("fail to parse tid,maybe it's not contains timestamp,tid=%s,err=%v", tid, err)
+			panic(any(err))
+		}
+		tidTimeArr[i] = tidTime
+	}
+	sort.Slice(tidTimeArr, func(i, j int) bool {
+		return tidTimeArr[i].Before(tidTimeArr[j])
+	})
+	return tidTimeArr[0], tidTimeArr[len(tidTimeArr)-1]
 }

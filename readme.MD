@@ -1,5 +1,5 @@
 
-![中文版本](https://github.com/clickpaas/timegrep/blob/main/readme_cn.MD)
+[中文版本](https://github.com/clickpaas/timegrep/blob/main/readme_cn.MD)
 
 # performance grep VS timegrep
 timegrep is 80+ times faster than grep with last several minutes scope, 
@@ -12,6 +12,7 @@ timegrep is 80+ times faster than grep with last several minutes scope,
 ```
 Usage1: timegrep -s startTime -e endTime -p pathOrFile
 Usage2: timegrep -t tid -p pathOrFile
+Usage3: timegrep -t tid1,tid2,tid3 -p pathOrFile
 
 ```
 # examples:
@@ -19,6 +20,7 @@ Usage2: timegrep -t tid -p pathOrFile
  ./timegrep.amd64 -s "2023-03-28 23:59:55" -e "2023-03-28 23:59:57" -p ./
  ./timegrep.amd64 -s "2023-03-28 23:59:55" -e "2023-03-28 23:59:57" -p ./test/a.log
  ./timegrep.amd64 -t 1.25117452587.16800191604710001 -p ./test/logSimple.log
+ ./timegrep.amd64 -t 1.25117452587.16800191604710001,1.25117452587.16800191704710001 -p ./test/logSimple.log
 ```
 ![search with time range](test/searchWithTimeRange.png)
 
@@ -26,14 +28,13 @@ Usage2: timegrep -t tid -p pathOrFile
 
 # build
 - linux `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o timegrep.amd64`
-- arm64v8 `GOOS=linux GOARCH=arm64 go build -o timegrep.arm64`
+- arm64v8 `GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o timegrep.arm64`
 - macos `go build`
 # TODO:
 0. support several log format
 1. read first line to select a format layout
-2. replace scanner.Text()  with scanner.Bytes()
+2. replace scanner.Text() with scanner.Bytes()
 3. performance tuning1: when time is near last log-line, prefer search tail 10000 lines, or search relative line number between first logTime and end logTime 
-4. multi tid, eg: timegrep -t tid1,tid2,tid3 , if tid between 1 minutes, search them all toggether
 # (performance PK)  grep VS timegrep 
 ![test case](test/grepVStimegrep.png)
 
