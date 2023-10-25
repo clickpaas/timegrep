@@ -17,6 +17,8 @@ Usage3: timegrep -t tid1,tid2,tid3 -p pathOrFile
  ./timegrep.amd64 -s "2023-03-28 23:59:55" -e "2023-03-28 23:59:57" -p ./test/a.log
  ./timegrep.amd64 -t 1.25117452587.16800191604710001 -p ./test/logSimple.log
  ./timegrep.amd64 -t 1.25117452587.16800191604710001,1.25117452587.16800191704710001 -p ./test/logSimple.log
+ ./timegrep.amd64 -t 1d25117452587d16800191604710001 -p ./test/logSimpleWithoutDot.log
+ ./timegrep.amd64 -t 1d25117452587d16800191604710001,1d25117452587d16800191704710001 -p ./test/logSimpleWithoutDot.log
 ```
 ![指定时间范围搜索日志](test/searchWithTimeRange.png)
 

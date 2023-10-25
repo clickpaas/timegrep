@@ -33,6 +33,9 @@ func main() {
 	}
 
 	if tid != "" && path != "" {
+		if !strings.Contains(tid, ".") {
+			tid = strings.ReplaceAll(tid, "d", ".")
+		}
 		if strings.Contains(tid, ",") {
 			minTime, maxTime := timegrep.ParseTidArr(tid)
 			startTime := minTime.Add(-15 * time.Second)
